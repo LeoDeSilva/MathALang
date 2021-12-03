@@ -20,7 +20,12 @@ class Lexer:
         self.next -= 1
         self.position -= 2
         self.char = self.file[self.position]
-        
+
+    def peek_char(self):
+        try:
+            return self.file[self.next]
+        except IndexError:
+            return ""
         
     def lex(self):
         tokens = []
@@ -62,6 +67,15 @@ class Lexer:
             return Token(DOT,self.char)
         elif self.char == ",":
             return Token(COMMA,self.char)
+        
+        elif self.char == "=":
+            return self.lex_double(EQ,"=",EE)
+        elif self.char == "!":
+            return self.lex_double(NOT,"=",NE)
+        elif self.char == ">":
+            return self.lex_double(GT,"=",GTE)
+        elif self.char == "<":
+            return self.lex_double(LT,"=",LTE)
 
         elif self.char == "(":
             return Token(LPAREN,self.char)
@@ -84,6 +98,15 @@ class Lexer:
 
         elif self.char in LETTERS:
             return Token(IDENTIFIER,self.lex_identifier())
+    
+
+    def lex_double(self,first_type,next_char,next_type):
+        char = self.char
+        if self.peek_char() == next_char:
+            self.advance()
+            return Token(next_type,char+self.char)
+        return Token(first_type,char)
+
 
     
     def lex_string(self):

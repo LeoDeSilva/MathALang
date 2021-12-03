@@ -1,5 +1,6 @@
 import sys
 from lexer.lexer import *
+from parse.parser import *
 
 def print_tokens(tokens):
     for tok in tokens:
@@ -10,7 +11,9 @@ def interpret_line(line):
 
     l = Lexer(line)
     tokens = l.lex()
-    print(tokens)
+
+    p = Parser(tokens)
+    p.parse()
 
 
 def read_file(filename):
