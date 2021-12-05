@@ -1,5 +1,5 @@
 from lexer.tokens import *
-from parse.parser_nodes import *
+from Parser.parser_nodes import *
 
 class Parser:
     def __init__(self, tokens):

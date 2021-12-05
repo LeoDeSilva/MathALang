@@ -1,6 +1,6 @@
 import sys
 from lexer.lexer import *
-from parse.parser import *
+from Parser.parser import *
 
 def print_tokens(tokens):
     for tok in tokens:
