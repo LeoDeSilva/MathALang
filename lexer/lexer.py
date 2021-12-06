@@ -33,7 +33,7 @@ class Lexer:
             token = self.lex_char()
             tokens.append(token)
             self.advance()
-        return tokens
+        return tokens + [Token(EOF,"")]
 
 
     def eat_whitespace(self):

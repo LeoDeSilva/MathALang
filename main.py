@@ -11,9 +11,11 @@ def interpret_line(line):
 
     l = Lexer(line)
     tokens = l.lex()
+    print(tokens)
 
     p = Parser(tokens)
-    p.parse()
+    ast = p.parse()
+    print(ast)
 
 
 def read_file(filename):
