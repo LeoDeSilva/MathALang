@@ -80,10 +80,13 @@ class Parser:
         node = None
         if self.token.type == INT:
             node = IntNode(int(self.token.literal))
+    
         elif self.token.type == STRING:
             node = StringNode(self.token.literal)
+    
         elif self.token.type == IDENTIFIER:
             node = VarAccessNode(self.token.literal)
+    
         elif self.token.type == LPAREN:
             self.advance()
             expr = self.parse_comparison()
