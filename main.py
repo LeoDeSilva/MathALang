@@ -1,5 +1,5 @@
 import sys
-from lexer.lexer import *
+from Lexer.lexer import *
 from Parser.parser import *
 
 def print_tokens(tokens):

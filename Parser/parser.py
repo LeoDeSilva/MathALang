@@ -1,4 +1,4 @@
-from lexer.tokens import *
+from Lexer.tokens import *
 from Parser.nodes import *
 
 class Parser:
@@ -95,5 +95,15 @@ class Parser:
             else:
                 print("Expected RPAREN")
                 node = expr
+
+        elif self.token.type == SUB:
+            self.advance()
+            return UnaryOpNode(SUB,self.parse_factor())
+        
+        elif self.token.type == NOT:
+            self.advance()
+            return UnaryOpNode(NOT, self.parse_factor())
+
+
         self.advance()
         return node

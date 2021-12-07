@@ -1,4 +1,4 @@
-from lexer.tokens import *
+from Lexer.tokens import *
 
 class Lexer:
     def __init__(self, file):
@@ -16,16 +16,19 @@ class Lexer:
         else:
             self.next = -1 
     
+        
     def retreat(self):
         self.next -= 1
         self.position -= 2
         self.char = self.file[self.position]
 
+        
     def peek_char(self):
         try:
             return self.file[self.next]
         except IndexError:
             return ""
+        
         
     def lex(self):
         tokens = []
@@ -106,7 +109,6 @@ class Lexer:
             self.advance()
             return Token(next_type,char+self.char)
         return Token(first_type,char)
-
 
     
     def lex_string(self):

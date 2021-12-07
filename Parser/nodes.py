@@ -1,4 +1,4 @@
-from lexer.tokens import *
+from Lexer.tokens import *
 
 class ProgramNode:
     def __init__(self,expressions):
@@ -7,6 +7,7 @@ class ProgramNode:
 
     def __repr__(self):
         return ",".join(str(exp) for exp in self.expressions)
+
 
 class BinOpNode:
     def __init__(self,left,op,right):
@@ -18,11 +19,15 @@ class BinOpNode:
     def __repr__(self):
         return "(" + self.left.__repr__() +":"+ self.op +":"+ self.right.__repr__() + ")"
 
+
 class UnaryOpNode:
     def __init__(self,op,right):
         self.type = UNARY_OP_NODE
         self.op = op 
         self.right = right
+
+    def __repr__(self):
+        return self.op + "(" + self.right.__repr__() + ")"
 
 
 class VarAccessNode:
@@ -30,10 +35,18 @@ class VarAccessNode:
         self.type = VAR_ACCESS_NODE
         self.identifier = identifier
 
+    def __repr__(self):
+        return self.identifier
+
+
 class StringNode:
     def __init__(self,value):
         self.type = STRING_NODE
         self.value = value
+
+    def __repr__(self):
+        return self.value
+
 
 class IntNode:
     def __init__(self,value):
