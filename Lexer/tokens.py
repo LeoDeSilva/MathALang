@@ -2,6 +2,7 @@ LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 DIGITS = "0123456789"
 
 EOF = "EOF"
+ERROR = "ERROR"
 
 ADD = "ADD"
 SUB = "SUB"
@@ -39,6 +40,7 @@ IDENTIFIER = "IDENTIFIER"
 ARRAY = "ARRAY"
 
 FACTORIAL = "FACTORIAL"
+CONTAINS = "CONTAINS"
 
 PROGRAM_NODE = "PROGRAM_NODE"
 BIN_OP_NODE = "BIN_OP_NODE"
@@ -51,15 +53,16 @@ VAR_ACCESS_NODE = "VAR_ACCESS_NODE"
 
 class Token:
     def __init__(self, type, literal):
-        self.type = type  
-        self.literal = literal 
-    
+        self.type = type
+        self.literal = literal
+
     def __repr__(self):
-        return self.type+":"+self.literal
+        return self.type + ":" + self.literal
 
 
 keywords = {
-    "factorial":FACTORIAL,
+    "factorial": FACTORIAL,
+    "contains": CONTAINS,
 }
 
 
