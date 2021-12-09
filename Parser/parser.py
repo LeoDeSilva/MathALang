@@ -1,3 +1,4 @@
+import time
 from Lexer.tokens import *
 from Parser.nodes import *
 
@@ -83,6 +84,11 @@ class Parser:
         node = None
         if self.token.type == INT:
             node = IntNode(int(self.token.literal))
+            if self.peek_token().type == POW:
+                self.advance()
+                operation = self.token.type
+                self.advance()
+                node = BinOpNode(node, operation, self.parse_factor())
 
         elif self.token.type == STRING:
             node = StringNode(self.token.literal)
@@ -115,11 +121,19 @@ class Parser:
             identifier = self.token.literal
             self.advance()
 
+            configs = []
+            params = []
+
             if self.token.type == LSQUARE:
-                pass
+                self.advance()
+                configs = self.parse_parameters(RSQUARE)
+                self.advance()
 
             if self.token.type == LBRACE:
-                pass
+                self.advance()
+                params = self.parse_parameters(RBRACE)
+
+            return FunctionCallNode(identifier, configs, params)
 
         elif self.token.type == LSQUARE:
             # ARRAY
@@ -128,8 +142,17 @@ class Parser:
         self.advance()
         return node
 
-    def parse_parameters(terminate):
-        pass
+    def parse_parameters(self, terminate):
+        parameters = []
+        while self.token.type != terminate and self.token.type != EOF:
+            if self.token.type == COMMA:
+                continue
+            expr = self.parse_operation()
+            parameters.append(expr)
+            if self.token.type != terminate:
+                self.advance()
+
+        return parameters
 
     def peek_operation(self):
         if self.token.type != BACKSLASH:

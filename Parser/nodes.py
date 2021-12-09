@@ -23,7 +23,7 @@ class FunctionCallNode:
             + ",".join(str(exp) for exp in self.configurations)
             + "]"
             + "{"
-            + ",".join(str(exp) for exp in self.configurations)
+            + ",".join(str(exp) for exp in self.parameters)
             + "}"
         )
 
