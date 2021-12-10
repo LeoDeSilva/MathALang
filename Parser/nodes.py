@@ -10,6 +10,15 @@ class ProgramNode:
         return ",".join(str(exp) for exp in self.expressions)
 
 
+class ArrayNode:
+    def __init__(self, nodes):
+        self.type = ARRAY_NODE
+        self.nodes = nodes
+
+    def __repr__(self):
+        return "[" + ",".join(str(exp) for exp in self.nodes) + "]"
+
+
 class FunctionCallNode:
     def __init__(self, identifier, configurations, parameters):
         self.identifier = identifier

@@ -40,18 +40,8 @@ class Parser:
         return ast
 
     def parse_expression(self):
-        node = self.parse_operation()
+        node = self.parse_comparison()
         return node
-
-    def parse_operation(self):
-        left_node = self.parse_comparison()
-        if self.token.type not in (SEMICOLON, EOF):
-            if self.peek_operation() in (CONTAINS):
-                op = self.peek_operation()
-                self.advance()
-                self.advance()
-                return BinOpNode(left_node, op, self.parse_operation())
-        return left_node
 
     def parse_comparison(self):
         left_node = self.parse_arith()
@@ -136,8 +126,10 @@ class Parser:
             return FunctionCallNode(identifier, configs, params)
 
         elif self.token.type == LSQUARE:
-            # ARRAY
-            pass
+            self.advance()
+            nodes = self.parse_parameters(RSQUARE)
+            self.advance()
+            return ArrayNode(nodes)
 
         self.advance()
         return node
@@ -147,21 +139,10 @@ class Parser:
         while self.token.type != terminate and self.token.type != EOF:
             if self.token.type == COMMA:
                 continue
-            expr = self.parse_operation()
+            expr = self.parse_comparison()
             parameters.append(expr)
+
             if self.token.type != terminate:
                 self.advance()
 
         return parameters
-
-    def peek_operation(self):
-        if self.token.type != BACKSLASH:
-            return ERROR
-
-        identifier = self.peek_token().literal
-
-        return (
-            IDENTIFIER
-            if lookup_identifier(identifier) == IDENTIFIER
-            else lookup_identifier(identifier)
-        )
