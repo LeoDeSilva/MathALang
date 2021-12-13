@@ -40,8 +40,21 @@ class Parser:
         return ast
 
     def parse_expression(self):
+        if self.token.type == LET:
+            self.advance()
+            return self.parse_assignment()
+        elif self.token.type == IDENTIFIER:
+            if self.peek_token().type == EQ:
+                return self.parse_assignment()
         node = self.parse_comparison()
         return node
+
+    def parse_assignment(self):
+        identifier = self.token.literal
+        self.advance()
+        self.advance()
+        expression = self.parse_comparison()
+        return VarAssignNode(identifier, expression)
 
     def parse_comparison(self):
         left_node = self.parse_arith()
@@ -62,7 +75,7 @@ class Parser:
         return left_node
 
     def parse_term(self):
-        left_node = self.parse_factor()
+        left_node = self.parse_atom()
         if self.token.type not in (SEMICOLON, EOF):
             if self.token.type in (MUL, DIV):
                 op = self.token.type
@@ -70,15 +83,19 @@ class Parser:
                 return BinOpNode(left_node, op, self.parse_term())
         return left_node
 
+    def parse_atom(self):
+        left_node = self.parse_factor()
+        if self.token.type not in (SEMICOLON, EOF):
+            if self.token.type in (POW, MOD):
+                op = self.token.type
+                self.advance()
+                return BinOpNode(left_node, op, self.parse_atom())
+        return left_node
+
     def parse_factor(self):
         node = None
         if self.token.type == INT:
             node = IntNode(int(self.token.literal))
-            if self.peek_token().type == POW:
-                self.advance()
-                operation = self.token.type
-                self.advance()
-                node = BinOpNode(node, operation, self.parse_factor())
 
         elif self.token.type == STRING:
             node = StringNode(self.token.literal)
@@ -103,10 +120,7 @@ class Parser:
             self.advance()
             return UnaryOpNode(NOT, self.parse_factor())
 
-        elif self.token.type == BACKSLASH:
-            # TODO: Implement ParseParameters + Optional Config + Parameters
-            # \ID []? {} ← Function
-
+        elif self.token.type in (BACKSLASH, DIV):
             self.advance()
             identifier = self.token.literal
             self.advance()

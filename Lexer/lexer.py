@@ -32,7 +32,11 @@ class Lexer:
         while self.next != -1:
             token = self.lex_char()
             tokens.append(token)
-            self.advance()
+            try:
+                self.advance()
+            except IndexError:
+                break
+
         return tokens + [Token(EOF, "")]
 
     def eat_whitespace(self):
@@ -95,7 +99,8 @@ class Lexer:
             return Token(INT, self.lex_numeric())
 
         elif self.char in LETTERS:
-            return Token(IDENTIFIER, self.lex_identifier())
+            identifier = self.lex_identifier()
+            return Token(lookup_identifier(identifier), identifier)
 
     def lex_double(self, first_type, next_char, next_type):
         char = self.char

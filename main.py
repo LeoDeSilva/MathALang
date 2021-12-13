@@ -3,12 +3,18 @@ from Lexer.lexer import *
 from Parser.parser import *
 
 
+class Environment:
+    def __init__(self):
+        self.variables = {}
+        self.functions = {}
+
+
 def print_tokens(tokens):
     for tok in tokens:
         print(tok)
 
 
-def interpret_line(line):
+def interpret_line(line, environment):
     if len(line) < 1:
         return
 
@@ -18,18 +24,21 @@ def interpret_line(line):
 
     p = Parser(tokens)
     ast = p.parse()
-    print(ast)
+
+    ast.eval(environment)
 
 
 def read_file(filename):
+    environment = Environment()
     with open(filename, "r") as f:
-        interpret_line(f.read().replace("\n", ""))
+        interpret_line(f.read().replace("\n", ""), environment)
 
 
 def start_repl():
+    environment = Environment()
     while True:
         line = input(">>")
-        interpret_line(line)
+        interpret_line(line, environment)
 
 
 def main():
