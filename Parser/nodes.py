@@ -9,11 +9,10 @@ class ProgramNode:
 
     def eval(self, environment):
         for expr in self.expressions:
-            print(expr)
             print(expr.eval(environment))
 
     def __repr__(self):
-        return ",".join(str(exp) for exp in self.expressions)
+        return "PROGRAM_NODE:" + ",".join(str(exp) for exp in self.expressions)
 
 
 class VarAssignNode:
@@ -28,7 +27,12 @@ class VarAssignNode:
         return result
 
     def __repr__(self):
-        return self.identifier.__repr__() + "=" + self.expression.__repr__()
+        return (
+            "VAR_ACCESS:"
+            + self.identifier.__repr__()
+            + "="
+            + self.expression.__repr__()
+        )
 
 
 class ArrayNode:
@@ -43,7 +47,7 @@ class ArrayNode:
         return array
 
     def __repr__(self):
-        return "[" + ",".join(str(exp) for exp in self.nodes) + "]"
+        return "ARRAY NODE:" + "[" + ",".join(str(exp) for exp in self.nodes) + "]"
 
 
 class BinOpNode:
@@ -129,7 +133,7 @@ class VarAccessNode:
         return environment.variables[self.identifier]
 
     def __repr__(self):
-        return self.identifier
+        return "VAR_ACCESS:" + self.identifier
 
 
 class StringNode:
@@ -141,7 +145,7 @@ class StringNode:
         return self.value
 
     def __repr__(self):
-        return self.value
+        return "STRING:" + self.value
 
 
 class IntNode:
@@ -153,7 +157,7 @@ class IntNode:
         return self.value
 
     def __repr__(self):
-        return str(self.value)
+        return "INT:" + str(self.value)
 
 
 class FunctionCallNode:
@@ -168,6 +172,7 @@ class FunctionCallNode:
             "input": handle_input,
             "intInput": handle_int_input,
             "random": handle_random,
+            "join": handle_join,
         }
 
     def __repr__(self):

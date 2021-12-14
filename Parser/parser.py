@@ -35,6 +35,8 @@ class Parser:
             if self.token.type == EOF:
                 break
             expr = self.parse_expression()
+            if expr == None:
+                continue
             ast.expressions.append(expr)
             self.advance()
         return ast

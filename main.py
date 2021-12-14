@@ -18,9 +18,8 @@ def interpret_line(line, environment):
     if len(line) < 1:
         return
 
-    l = Lexer(line)
+    l = Lexer(line.strip())
     tokens = l.lex()
-    print(tokens)
 
     p = Parser(tokens)
     ast = p.parse()
