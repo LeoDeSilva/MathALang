@@ -1,2 +1,2 @@
-let binary = /random[1]{8}
-\join[""]{binary}
+let binary = /random[1]{8};
+\print{\join[""]{binary}};

@@ -116,11 +116,11 @@ class Parser:
 
         elif self.token.type == SUB:
             self.advance()
-            return UnaryOpNode(SUB, self.parse_factor())
+            node = UnaryOpNode(SUB, self.parse_factor())
 
         elif self.token.type == NOT:
             self.advance()
-            return UnaryOpNode(NOT, self.parse_factor())
+            node = UnaryOpNode(NOT, self.parse_factor())
 
         elif self.token.type in (BACKSLASH, DIV):
             self.advance()
@@ -138,14 +138,16 @@ class Parser:
             if self.token.type == LBRACE:
                 self.advance()
                 params = self.parse_parameters(RBRACE)
+            else:
+                self.retreat()
 
-            return FunctionCallNode(identifier, configs, params)
+            node = FunctionCallNode(identifier, configs, params)
 
         elif self.token.type == LSQUARE:
             self.advance()
             nodes = self.parse_parameters(RSQUARE)
             self.advance()
-            return ArrayNode(nodes)
+            node = ArrayNode(nodes)
 
         self.advance()
         return node

@@ -14,7 +14,7 @@ def print_tokens(tokens):
         print(tok)
 
 
-def interpret_line(line, environment):
+def interpret_line(line, environment, display):
     if len(line) < 1:
         return
 
@@ -23,21 +23,22 @@ def interpret_line(line, environment):
 
     p = Parser(tokens)
     ast = p.parse()
+    print(ast)
 
-    ast.eval(environment)
+    ast.eval(environment, display)
 
 
 def read_file(filename):
     environment = Environment()
     with open(filename, "r") as f:
-        interpret_line(f.read().replace("\n", ""), environment)
+        interpret_line(f.read().replace("\n", ""), environment, False)
 
 
 def start_repl():
     environment = Environment()
     while True:
         line = input(">>")
-        interpret_line(line, environment)
+        interpret_line(line, environment, True)
 
 
 def main():

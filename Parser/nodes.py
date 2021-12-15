@@ -1,5 +1,6 @@
 from Lexer.tokens import *
 from Parser.functions import *
+import inspect
 
 
 class ProgramNode:
@@ -7,9 +8,15 @@ class ProgramNode:
         self.type = PROGRAM_NODE
         self.expressions = expressions
 
-    def eval(self, environment):
+    def eval(self, environment, display=False):
         for expr in self.expressions:
-            print(expr.eval(environment))
+            result = eval_base(expr, environment)
+
+            if isinstance(result, ErrorNode):
+                return result.eval(environment)
+
+            if display:
+                print(result)
 
     def __repr__(self):
         return "PROGRAM_NODE:" + ",".join(str(exp) for exp in self.expressions)
@@ -22,7 +29,7 @@ class VarAssignNode:
         self.type = VAR_ASSIGN_NODE
 
     def eval(self, environment):
-        result = self.expression.eval(environment)
+        result = eval_base(self.expression)
         environment.variables[self.identifier] = result
         return result
 
@@ -58,42 +65,47 @@ class BinOpNode:
         self.right = right
 
     def eval(self, environment):
-        if self.op == ADD:
-            return self.left.eval(environment) + self.right.eval(environment)
-        elif self.op == SUB:
-            return self.left.eval(environment) - self.right.eval(environment)
-        elif self.op == DIV:
-            return self.left.eval(environment) / self.right.eval(environment)
-        elif self.op == MUL:
-            return self.left.eval(environment) * self.right.eval(environment)
-        elif self.op == MOD:
-            return self.left.eval(environment) % self.right.eval(environment)
-        elif self.op == POW:
-            return self.left.eval(environment) ** self.right.eval(environment)
+        left = eval_base(self.left, environment)
+        right = eval_base(self.right, environment)
 
-        elif self.op == EE:
-            return (
-                1 if self.left.eval(environment) == self.right.eval(environment) else 0
-            )
-        elif self.op == NE:
-            return (
-                1 if self.left.eval(environment) != self.right.eval(environment) else 0
-            )
-        elif self.op == GT:
-            return (
-                1 if self.left.eval(environment) > self.right.eval(environment) else 0
-            )
-        elif self.op == GTE:
-            return (
-                1 if self.left.eval(environment) >= self.right.eval(environment) else 0
-            )
-        elif self.op == LT:
-            return (
-                1 if self.left.eval(environment) < self.right.eval(environment) else 0
-            )
-        elif self.op == LTE:
-            return (
-                1 if self.left.eval(environment) <= self.right.eval(environment) else 0
+        if isinstance(left, ErrorNode):
+            return left
+        elif isinstance(right, ErrorNode):
+            return right
+        try:
+            if self.op == ADD:
+                return left + right
+            elif self.op == SUB:
+                return left - right
+            elif self.op == DIV:
+                return left / right
+            elif self.op == MUL:
+                return left * right
+            elif self.op == MOD:
+                return left % right
+            elif self.op == POW:
+                return left ** right
+
+            elif self.op == EE:
+                return 1 if left == right else 0
+            elif self.op == NE:
+                return 1 if left != right else 0
+            elif self.op == GT:
+                return 1 if left > right else 0
+            elif self.op == GTE:
+                return 1 if left >= right else 0
+            elif self.op == LT:
+                return 1 if left < right else 0
+            elif self.op == LTE:
+                return 1 if left <= right else 0
+        except TypeError:
+            return ErrorNode(
+                "Binary Operation Error: "
+                + str(left)
+                + ":"
+                + self.op
+                + ":"
+                + str(right)
             )
 
     def __repr__(self):
@@ -115,10 +127,13 @@ class UnaryOpNode:
         self.right = right
 
     def eval(self, environment):
+        right = eval_base(self.right, environment)
+        if isinstance(right, ErrorNode):
+            return right
         if self.op == SUB:
-            return -(self.right.eval(environment))
+            return -(right)
         elif self.op == NOT:
-            return 1 if self.right.eval(environment) == 0 else 0
+            return 1 if right == 0 else 0
 
     def __repr__(self):
         return self.op + "(" + self.right.__repr__() + ")"
@@ -160,6 +175,20 @@ class IntNode:
         return "INT:" + str(self.value)
 
 
+class ErrorNode:
+    def __init__(self, message):
+        self.message = message
+        self.type = ERROR
+
+    def eval(self, environment):
+        if self.message != "":
+            print(self.message)
+        return None
+
+    def __repr__(self):
+        return "ERROR:" + self.message
+
+
 class FunctionCallNode:
     def __init__(self, identifier, configurations, parameters):
         self.identifier = identifier
@@ -189,3 +218,12 @@ class FunctionCallNode:
     def eval(self, environment):
         if self.identifier in self.functions:
             return self.functions[self.identifier](self, environment)
+            # TODO CUSTOM DEFENITIONS
+        else:
+            return ErrorNode("Function Not Defined")
+
+
+def eval_base(node, environment):
+    if isinstance(node, (int, str, list, float, ErrorNode)):
+        return node
+    return eval_base(node.eval(environment), environment)

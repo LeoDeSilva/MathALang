@@ -27,6 +27,12 @@ def handle_int_input(node, environment):
 
 
 def handle_random(node, environment):
+    if len(node.configurations) < 1:
+        if len(node.parameters) >= 1:
+            n = node.parameters[0].eval(environment)
+            return nodes.ArrayNode([nodes.IntNode(random.random()) for _ in range(n)])
+        return nodes.IntNode(random.random())
+
     if len(node.configurations) > 1:
         min_value = node.configurations[0].eval(environment)
         max_value = node.configurations[1].eval(environment)
