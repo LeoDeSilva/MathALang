@@ -1,7 +1,5 @@
 from Lexer.tokens import *
 from Parser.functions import *
-import inspect
-
 
 class ProgramNode:
     def __init__(self, expressions):
@@ -29,7 +27,7 @@ class VarAssignNode:
         self.type = VAR_ASSIGN_NODE
 
     def eval(self, environment):
-        result = eval_base(self.expression)
+        result = eval_base(self.expression, environment)
         environment.variables[self.identifier] = result
         return result
 
@@ -48,10 +46,7 @@ class ArrayNode:
         self.nodes = nodes
 
     def eval(self, environment):
-        array = []
-        for node in self.nodes:
-            array.append(node.eval(environment))
-        return array
+        return [node.eval(environment) for node in self.nodes]
 
     def __repr__(self):
         return "ARRAY NODE:" + "[" + ",".join(str(exp) for exp in self.nodes) + "]"
@@ -64,7 +59,7 @@ class BinOpNode:
         self.op = op
         self.right = right
 
-    def eval(self, environment):
+    def eval(self, environment):  # sourcery no-metrics
         left = eval_base(self.left, environment)
         right = eval_base(self.right, environment)
 
@@ -74,17 +69,17 @@ class BinOpNode:
             return right
         try:
             if self.op == ADD:
-                return left + right
+                return format_float(left+right)
             elif self.op == SUB:
-                return left - right
+                return format_float(left-right)
             elif self.op == DIV:
-                return left / right
+                return format_float(left/right)
             elif self.op == MUL:
-                return left * right
+                return format_float(left*right)
             elif self.op == MOD:
-                return left % right
+                return format_float(left%right)
             elif self.op == POW:
-                return left ** right
+                return format_float(left**right)
 
             elif self.op == EE:
                 return 1 if left == right else 0
@@ -98,6 +93,7 @@ class BinOpNode:
                 return 1 if left < right else 0
             elif self.op == LTE:
                 return 1 if left <= right else 0
+
         except TypeError:
             return ErrorNode(
                 "Binary Operation Error: "
@@ -202,6 +198,7 @@ class FunctionCallNode:
             "intInput": handle_int_input,
             "random": handle_random,
             "join": handle_join,
+            "frac":handle_frac,
         }
 
     def __repr__(self):
@@ -226,4 +223,12 @@ class FunctionCallNode:
 def eval_base(node, environment):
     if isinstance(node, (int, str, list, float, ErrorNode)):
         return node
+
     return eval_base(node.eval(environment), environment)
+
+
+def format_float(float):
+    if int(float) == float:
+        return int(float)
+    else:
+        return float

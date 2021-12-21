@@ -4,26 +4,23 @@ import Parser.nodes as nodes
 
 
 def params_to_string(params, environment):
-    string = ""
-    for param in params:
-        string += str(param.eval(environment))
-    return string
+    return "".join(str(param.eval(environment)) for param in params)
 
 
 def handle_print(node, environment):
     string = params_to_string(node.parameters, environment)
     print(string)
-    return string
+    return nodes.StringNode(string)
 
 
 def handle_input(node, environment):
     string = params_to_string(node.parameters, environment)
-    return input(string)
+    return nodes.StringNode(input(string))
 
 
 def handle_int_input(node, environment):
     string = params_to_string(node.parameters, environment)
-    return int(input(string))
+    return nodes.IntNode(nodes.format_float(float(input(string))))
 
 
 def handle_random(node, environment):
@@ -49,6 +46,14 @@ def handle_random(node, environment):
         return nodes.IntNode(random.randint(min_value, max_value))
 
 
+def handle_frac(node, environment):
+    if len(node.parameters) < 2:
+        return nodes.ErrorNode("FRAC takes at least 2 parameters")
+    
+    op_node = nodes.BinOpNode(node.parameters[0],"DIV",node.parameters[1])
+    return nodes.IntNode(nodes.eval_base(op_node, environment))
+
+
 def handle_join(node, environment):
     if len(node.configurations) < 1:
         string = ","
@@ -56,9 +61,7 @@ def handle_join(node, environment):
         string = params_to_string(node.configurations, environment)
 
     array = flatten_list(node.parameters, environment)
-
-    joined = string.join([str(param.eval(environment)) for param in array])
-    return joined
+    return string.join([str(param.eval(environment)) for param in array])
 
 
 def flatten_list(array, environment):
@@ -84,5 +87,3 @@ def flatten_list(array, environment):
             flatten_list(environment.variables[array.identifier], environment),
             environment,
         )
-
-    return flattened_array

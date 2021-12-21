@@ -35,7 +35,7 @@ class Parser:
             if self.token.type == EOF:
                 break
             expr = self.parse_expression()
-            if expr == None:
+            if expr is None:
                 continue
             ast.expressions.append(expr)
             self.advance()
@@ -48,8 +48,7 @@ class Parser:
         elif self.token.type == IDENTIFIER:
             if self.peek_token().type == EQ:
                 return self.parse_assignment()
-        node = self.parse_comparison()
-        return node
+        return self.parse_comparison()
 
     def parse_assignment(self):
         identifier = self.token.literal
@@ -60,44 +59,40 @@ class Parser:
 
     def parse_comparison(self):
         left_node = self.parse_arith()
-        if self.token.type not in (SEMICOLON, EOF):
-            if self.token.type in (EE, NE, GT, GTE, LT, LTE):
-                op = self.token.type
-                self.advance()
-                return BinOpNode(left_node, op, self.parse_comparison())
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (EE,NE,GT,GTE,LT,LTE):
+            op = self.token.type
+            self.advance()
+            return BinOpNode(left_node, op, self.parse_comparison())
         return left_node
 
     def parse_arith(self):
         left_node = self.parse_term()
-        if self.token.type not in (SEMICOLON, EOF):
-            if self.token.type in (ADD, SUB):
-                op = self.token.type
-                self.advance()
-                return BinOpNode(left_node, op, self.parse_arith())
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (ADD,SUB):
+            op = self.token.type
+            self.advance()
+            return BinOpNode(left_node, op, self.parse_arith())
         return left_node
 
     def parse_term(self):
         left_node = self.parse_atom()
-        if self.token.type not in (SEMICOLON, EOF):
-            if self.token.type in (MUL, DIV):
-                op = self.token.type
-                self.advance()
-                return BinOpNode(left_node, op, self.parse_term())
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (MUL,DIV):
+            op = self.token.type
+            self.advance()
+            return BinOpNode(left_node, op, self.parse_term())
         return left_node
 
     def parse_atom(self):
         left_node = self.parse_factor()
-        if self.token.type not in (SEMICOLON, EOF):
-            if self.token.type in (POW, MOD):
-                op = self.token.type
-                self.advance()
-                return BinOpNode(left_node, op, self.parse_atom())
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (POW,MOD):
+            op = self.token.type
+            self.advance()
+            return BinOpNode(left_node, op, self.parse_atom())
         return left_node
 
     def parse_factor(self):
         node = None
         if self.token.type == INT:
-            node = IntNode(int(self.token.literal))
+            node = IntNode(float(self.token.literal) if "." in self.token.literal else int(self.token.literal))
 
         elif self.token.type == STRING:
             node = StringNode(self.token.literal)
@@ -108,12 +103,9 @@ class Parser:
         elif self.token.type == LPAREN:
             self.advance()
             expr = self.parse_comparison()
-            if self.token.type == RPAREN:
-                node = expr
-            else:
+            if self.token.type != RPAREN:
                 print("Expected RPAREN")
-                node = expr
-
+            node = expr
         elif self.token.type == SUB:
             self.advance()
             node = UnaryOpNode(SUB, self.parse_factor())
@@ -154,7 +146,7 @@ class Parser:
 
     def parse_parameters(self, terminate):
         parameters = []
-        while self.token.type != terminate and self.token.type != EOF:
+        while self.token.type not in [terminate, EOF]:
             if self.token.type == COMMA:
                 continue
             expr = self.parse_comparison()

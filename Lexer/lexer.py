@@ -119,17 +119,15 @@ class Lexer:
         return self.file[start_pos : self.position]
 
     def lex_identifier(self):
-        start_pos = self.position
-        while self.next != -1 and self.char in LETTERS:
-            self.advance()
-
-        return self.retreat_and_return(start_pos)
+        return self.extract_string(LETTERS)
 
     def lex_numeric(self):
-        start_pos = self.position
-        while self.next != -1 and self.char.isnumeric():
-            self.advance()
+        return self.extract_string("1234567890.")
 
+    def extract_string(self, chars):
+        start_pos = self.position
+        while self.next != -1 and self.char in chars:
+            self.advance()
         return self.retreat_and_return(start_pos)
 
     def retreat_and_return(self, start_pos):
