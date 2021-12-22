@@ -9,11 +9,6 @@ class Environment:
         self.functions = {}
 
 
-def print_tokens(tokens):
-    for tok in tokens:
-        print(tok)
-
-
 def interpret_line(line, environment, display):
     if len(line) < 1:
         return
@@ -23,7 +18,6 @@ def interpret_line(line, environment, display):
 
     p = Parser(tokens)
     ast = p.parse()
-    print(ast)
 
     ast.eval(environment, display)
 
@@ -37,8 +31,18 @@ def read_file(filename):
 def start_repl():
     environment = Environment()
     while True:
-        line = input(">>")
+        try:
+            line = input(">>")
+
+        except KeyboardInterrupt:
+            print("Keyboard Interrupt")
+            break
+
+        if line in ("quit", "break", "exit"):
+            break
+
         interpret_line(line, environment, True)
+        print()
 
 
 def main():

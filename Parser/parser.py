@@ -59,7 +59,14 @@ class Parser:
 
     def parse_comparison(self):
         left_node = self.parse_arith()
-        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (EE,NE,GT,GTE,LT,LTE):
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (
+            EE,
+            NE,
+            GT,
+            GTE,
+            LT,
+            LTE,
+        ):
             op = self.token.type
             self.advance()
             return BinOpNode(left_node, op, self.parse_comparison())
@@ -67,7 +74,7 @@ class Parser:
 
     def parse_arith(self):
         left_node = self.parse_term()
-        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (ADD,SUB):
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (ADD, SUB):
             op = self.token.type
             self.advance()
             return BinOpNode(left_node, op, self.parse_arith())
@@ -75,7 +82,7 @@ class Parser:
 
     def parse_term(self):
         left_node = self.parse_atom()
-        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (MUL,DIV):
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (MUL, DIV):
             op = self.token.type
             self.advance()
             return BinOpNode(left_node, op, self.parse_term())
@@ -83,7 +90,7 @@ class Parser:
 
     def parse_atom(self):
         left_node = self.parse_factor()
-        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (POW,MOD):
+        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (POW, MOD):
             op = self.token.type
             self.advance()
             return BinOpNode(left_node, op, self.parse_atom())
@@ -92,7 +99,11 @@ class Parser:
     def parse_factor(self):
         node = None
         if self.token.type == INT:
-            node = IntNode(float(self.token.literal) if "." in self.token.literal else int(self.token.literal))
+            node = IntNode(
+                float(self.token.literal)
+                if "." in self.token.literal
+                else int(self.token.literal)
+            )
 
         elif self.token.type == STRING:
             node = StringNode(self.token.literal)
@@ -108,7 +119,7 @@ class Parser:
             node = expr
         elif self.token.type == SUB:
             self.advance()
-            node = UnaryOpNode(SUB, self.parse_factor())
+            return UnaryOpNode(SUB, self.parse_factor())
 
         elif self.token.type == NOT:
             self.advance()

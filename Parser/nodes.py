@@ -3,6 +3,9 @@ from Lexer.tokens import *
 from Parser.functions import *
 
 
+# =============== Generic Nodes ================
+
+
 class ProgramNode:
     def __init__(self, expressions):
         self.type = PROGRAM_NODE
@@ -10,13 +13,15 @@ class ProgramNode:
 
     def eval(self, environment, display=False):
         for expr in self.expressions:
-            result = expr.eval(environment)
+            result = eval(expr, environment)
 
             if isinstance(result, ErrorNode):
-                return result.eval(environment)
+                return eval(result, environment)
 
             if display:
-                print(result.eval(environment))
+                evalled = eval(result, environment)
+                if evalled is not None:
+                    print(evalled)
 
     def __repr__(self):
         return "PROGRAM_NODE:" + ",".join(str(exp) for exp in self.expressions)
@@ -29,29 +34,17 @@ class VarAssignNode:
         self.type = VAR_ASSIGN_NODE
 
     def eval(self, environment):
-        result = assign_node(eval_base(self.expression, environment), environment)
+        result = eval(self.expression, environment)
         environment.variables[self.identifier] = result
-        return result
+        # return result
 
     def __repr__(self):
         return (
-            "VAR_ACCESS:"
+            "VAR_ASSIGN:"
             + self.identifier.__repr__()
             + "="
             + self.expression.__repr__()
         )
-
-
-class ArrayNode:
-    def __init__(self, nodes):
-        self.type = ARRAY_NODE
-        self.nodes = nodes
-
-    def eval(self, environment):
-        return [node.eval(environment) for node in self.nodes]
-
-    def __repr__(self):
-        return "ARRAY NODE:" + "[" + ",".join(str(exp) for exp in self.nodes) + "]"
 
 
 class BinOpNode:
@@ -62,8 +55,8 @@ class BinOpNode:
         self.right = right
 
     def eval(self, environment):  # sourcery no-metrics
-        left = eval_base(self.left, environment)
-        right = eval_base(self.right, environment)
+        left = eval(self.left, environment)
+        right = eval(self.right, environment)
 
         if isinstance(left, ErrorNode):
             return left
@@ -97,7 +90,6 @@ class BinOpNode:
                 return IntNode(1 if left <= right else 0)
 
         except TypeError:
-            print(type(left), type(right), [1] + [2])
             return ErrorNode(
                 "Binary Operation Error: "
                 + str(left)
@@ -126,7 +118,7 @@ class UnaryOpNode:
         self.right = right
 
     def eval(self, environment):
-        right = eval_base(self.right, environment)
+        right = eval(self.right, environment)
         if isinstance(right, ErrorNode):
             return right
         if self.op == SUB:
@@ -136,6 +128,9 @@ class UnaryOpNode:
 
     def __repr__(self):
         return self.op + "(" + self.right.__repr__() + ")"
+
+
+# =============== Atom Nodes ==============
 
 
 class VarAccessNode:
@@ -148,6 +143,18 @@ class VarAccessNode:
 
     def __repr__(self):
         return "VAR_ACCESS:" + self.identifier
+
+
+class ArrayNode:
+    def __init__(self, nodes):
+        self.type = ARRAY_NODE
+        self.nodes = nodes
+
+    def eval(self, environment):
+        return [eval(node, environment) for node in self.nodes]
+
+    def __repr__(self):
+        return "ARRAY NODE:" + "[" + ",".join(str(exp) for exp in self.nodes) + "]"
 
 
 class StringNode:
@@ -205,6 +212,10 @@ class FunctionCallNode:
             "sqrt": handle_sqrt,
             "root": handle_sqrt,
             "sum": handle_sum,
+            "len": handle_len,
+            "str": handle_str,
+            "int": handle_int,
+            "quadratic": handle_quadratic,
         }
 
     def __repr__(self):
@@ -226,6 +237,28 @@ class FunctionCallNode:
             return ErrorNode("Function Not Defined")
 
 
+# =============== Quality Of Life ==============
+
+
+def eval(node, environment):
+    if not isinstance(node, (int, str, float, list)) and node != None:
+        return eval(node.eval(environment), environment)
+
+    elif isinstance(node, ErrorNode):
+        return node.eval(environment)
+
+    return node
+
+
+def assign_node(node):
+    if isinstance(node, (int, float)):
+        return IntNode(format_result(node))
+    elif isinstance(node, str):
+        return StringNode(node)
+    elif isinstance(node, list):
+        return ArrayNode(node)
+
+
 def format_result(result):
     if not isinstance(result, (int, float)):
         return result
@@ -235,19 +268,3 @@ def format_result(result):
     else:
         # Possibly give option for d.p
         return round(result, 3)
-
-
-def eval_base(node, environment):
-    if not isinstance(node, (int, str, float, list, ErrorNode)):
-        return eval_base(node.eval(environment), environment)
-
-    return node
-
-
-def assign_node(node, environment):
-    if isinstance(node, (int, float)):
-        return IntNode(format_result(node))
-    elif isinstance(node, str):
-        return StringNode(node)
-    elif isinstance(node, list):
-        return ArrayNode(node)
