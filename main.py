@@ -4,9 +4,10 @@ from Parser.parser import *
 
 
 class Environment:
-    def __init__(self):
+    def __init__(self, options):
         self.variables = {}
         self.functions = {}
+        self.options = options
 
 
 def interpret_line(line, environment, display):
@@ -23,13 +24,13 @@ def interpret_line(line, environment, display):
 
 
 def read_file(filename):
-    environment = Environment()
+    environment = Environment({"prediction": True})
     with open(filename, "r") as f:
         interpret_line(f.read().replace("\n", ""), environment, False)
 
 
 def start_repl():
-    environment = Environment()
+    environment = Environment({"prediction": True})
     while True:
         try:
             line = input(">>")

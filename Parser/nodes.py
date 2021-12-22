@@ -1,7 +1,7 @@
 from os import environ
 from Lexer.tokens import *
 from Parser.functions import *
-
+from difflib import SequenceMatcher
 
 # =============== Generic Nodes ================
 
@@ -139,7 +139,27 @@ class VarAccessNode:
         self.identifier = identifier
 
     def eval(self, environment):
-        return environment.variables[self.identifier]
+        if (
+            self.identifier in environment.variables
+            or environment.options["prediction"] != True
+        ):
+            return environment.variables[self.identifier]
+
+        predicted_identifier = {
+            "identifier": list(environment.variables)[0],
+            "certainty": 0,
+        }
+
+        for identifier in list(environment.variables):
+            certainty = SequenceMatcher(None, self.identifier, identifier).ratio()
+
+            if certainty > predicted_identifier["certainty"]:
+                predicted_identifier = {
+                    "identifier": identifier,
+                    "certainty": certainty,
+                }
+
+        return environment.variables[predicted_identifier["identifier"]]
 
     def __repr__(self):
         return "VAR_ACCESS:" + self.identifier
@@ -206,6 +226,7 @@ class FunctionCallNode:
             "print": handle_print,
             "input": handle_input,
             "intInput": handle_int_input,
+            "intput": handle_int_input,
             "random": handle_random,
             "join": handle_join,
             "frac": handle_frac,
@@ -216,6 +237,11 @@ class FunctionCallNode:
             "str": handle_str,
             "int": handle_int,
             "quadratic": handle_quadratic,
+            "quad": handle_quadratic,
+            "percentage": handle_percentage,
+            "perc": handle_percentage,
+            "average":handle_average,
+            "avg":handle_average,
         }
 
     def __repr__(self):

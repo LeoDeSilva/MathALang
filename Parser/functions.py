@@ -21,7 +21,7 @@ def handle_len(node, environment):
 
 
 def handle_print(node, environment):
-    print(params_to_string(node.parameters, environment))
+    print(*nodes.eval(nodes.ArrayNode(node.parameters), environment))
 
 
 def handle_input(node, environment):
@@ -128,11 +128,31 @@ def handle_quadratic(node, environment):
         return nodes.ArrayNode([positive, negative])
 
 
+def handle_percentage(node, environment):
+    if len(node.parameters) < 1:
+        return nodes.ErrorNode("PERCENTAGE takes at least 1 parameter")
+
+    denomenator = 100
+    if len(node.parameters) > 1:
+        denomenator = nodes.eval(node.parameters[1], environment)
+
+    return nodes.assign_node(
+        (nodes.eval(node.parameters[0], environment) / denomenator) * 100
+    )
+
+
+def handle_average(node, environment):
+    if len(node.parameters) < 1:
+        return nodes.ErrorNode("AVERAGE takes at least 1 parameter")
+    
+    params = flatten_list(node.parameters, environment)
+    return nodes.assign_node(sum(params)/len(params))
+
 # =============== Quality Of Life ==============
 
 
 def params_to_string(params, environment):
-    return "".join(
+    return " ".join(
         str(nodes.eval(param, environment))
         for param in flatten_list(params, environment)
     )
@@ -145,20 +165,8 @@ def flatten_list(array, environment):
             flattened_array += flatten_list(item, environment)
         return flattened_array
 
-    elif isinstance(array, (int, str, float)) or array.type in (INT_NODE, STRING_NODE):
+    elif isinstance(array, (int, str, float)):
         return [array]
 
-    elif array.type == ARRAY_NODE:
-        return flatten_list(array.nodes, environment)
-
-    elif array.type == FUNCTION_CALL_NODE:
+    else:
         return flatten_list(nodes.eval(array, environment), environment)
-
-    if array.type == ARRAY_NODE:
-        return flatten_list(array.nodes, environment)
-
-    elif array.type == VAR_ACCESS_NODE:
-        return flatten_list(
-            flatten_list(environment.variables[array.identifier], environment),
-            environment,
-        )

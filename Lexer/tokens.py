@@ -66,6 +66,8 @@ class Token:
 keywords = {
     "let": LET,
     "define": DEFINE,
+    "per": DIV,
+    "for": DIV,
 }
 
 

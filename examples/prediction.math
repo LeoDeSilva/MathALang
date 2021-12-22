@@ -1,0 +1,3 @@
+let rent = 100;
+let people = 5;
+\print{rent/person}
