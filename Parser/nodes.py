@@ -1,5 +1,7 @@
+from os import environ
 from Lexer.tokens import *
 from Parser.functions import *
+
 
 class ProgramNode:
     def __init__(self, expressions):
@@ -8,13 +10,13 @@ class ProgramNode:
 
     def eval(self, environment, display=False):
         for expr in self.expressions:
-            result = eval_base(expr, environment)
+            result = expr.eval(environment)
 
             if isinstance(result, ErrorNode):
                 return result.eval(environment)
 
             if display:
-                print(result)
+                print(result.eval(environment))
 
     def __repr__(self):
         return "PROGRAM_NODE:" + ",".join(str(exp) for exp in self.expressions)
@@ -27,7 +29,7 @@ class VarAssignNode:
         self.type = VAR_ASSIGN_NODE
 
     def eval(self, environment):
-        result = eval_base(self.expression, environment)
+        result = assign_node(eval_base(self.expression, environment), environment)
         environment.variables[self.identifier] = result
         return result
 
@@ -69,32 +71,33 @@ class BinOpNode:
             return right
         try:
             if self.op == ADD:
-                return format_float(left+right)
+                return IntNode(format_result(left + right))
             elif self.op == SUB:
-                return format_float(left-right)
+                return IntNode(format_result(left - right))
             elif self.op == DIV:
-                return format_float(left/right)
+                return IntNode(format_result(left / right))
             elif self.op == MUL:
-                return format_float(left*right)
+                return IntNode(format_result(left * right))
             elif self.op == MOD:
-                return format_float(left%right)
+                return IntNode(format_result(left % right))
             elif self.op == POW:
-                return format_float(left**right)
+                return IntNode(format_result(left ** right))
 
             elif self.op == EE:
-                return 1 if left == right else 0
+                return IntNode(1 if left == right else 0)
             elif self.op == NE:
-                return 1 if left != right else 0
+                return IntNode(1 if left != right else 0)
             elif self.op == GT:
-                return 1 if left > right else 0
+                return IntNode(1 if left > right else 0)
             elif self.op == GTE:
-                return 1 if left >= right else 0
+                return IntNode(1 if left >= right else 0)
             elif self.op == LT:
-                return 1 if left < right else 0
+                return IntNode(1 if left < right else 0)
             elif self.op == LTE:
-                return 1 if left <= right else 0
+                return IntNode(1 if left <= right else 0)
 
         except TypeError:
+            print(type(left), type(right), [1] + [2])
             return ErrorNode(
                 "Binary Operation Error: "
                 + str(left)
@@ -127,9 +130,9 @@ class UnaryOpNode:
         if isinstance(right, ErrorNode):
             return right
         if self.op == SUB:
-            return -(right)
+            return IntNode(-(right))
         elif self.op == NOT:
-            return 1 if right == 0 else 0
+            return IntNode(1 if right == 0 else 0)
 
     def __repr__(self):
         return self.op + "(" + self.right.__repr__() + ")"
@@ -198,7 +201,10 @@ class FunctionCallNode:
             "intInput": handle_int_input,
             "random": handle_random,
             "join": handle_join,
-            "frac":handle_frac,
+            "frac": handle_frac,
+            "sqrt": handle_sqrt,
+            "root": handle_sqrt,
+            "sum": handle_sum,
         }
 
     def __repr__(self):
@@ -220,15 +226,28 @@ class FunctionCallNode:
             return ErrorNode("Function Not Defined")
 
 
-def eval_base(node, environment):
-    if isinstance(node, (int, str, list, float, ErrorNode)):
-        return node
+def format_result(result):
+    if not isinstance(result, (int, float)):
+        return result
 
-    return eval_base(node.eval(environment), environment)
-
-
-def format_float(float):
-    if int(float) == float:
-        return int(float)
+    if int(result) == result:
+        return int(result)
     else:
-        return float
+        # Possibly give option for d.p
+        return round(result, 3)
+
+
+def eval_base(node, environment):
+    if not isinstance(node, (int, str, float, list, ErrorNode)):
+        return eval_base(node.eval(environment), environment)
+
+    return node
+
+
+def assign_node(node, environment):
+    if isinstance(node, (int, float)):
+        return IntNode(format_result(node))
+    elif isinstance(node, str):
+        return StringNode(node)
+    elif isinstance(node, list):
+        return ArrayNode(node)

@@ -138,7 +138,6 @@ class Parser:
         elif self.token.type == LSQUARE:
             self.advance()
             nodes = self.parse_parameters(RSQUARE)
-            self.advance()
             node = ArrayNode(nodes)
 
         self.advance()
