@@ -47,6 +47,7 @@ BIN_OP_NODE = "BIN_OP_NODE"
 UNARY_OP_NODE = "UNARY_OP_NODE"
 VAR_ASSIGN_NODE = "VAR_ASSIGN_NODE"
 FUNCTION_CALL_NODE = "FUNCTION_CALL_NODE"
+INDEX_NODE = "INDEX_NODE"
 
 INT_NODE = "INT_NODE"
 STRING_NODE = "STRING_NODE"
@@ -72,6 +73,7 @@ keywords = {
     "and": ADD,
     "by": MUL,
     "times": MUL,
+    "is": EQ,
     "take": SUB,
 }
 

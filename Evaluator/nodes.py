@@ -130,6 +130,24 @@ class UnaryOpNode:
         return self.op + "(" + self.right.__repr__() + ")"
 
 
+class IndexNode:
+    def __init__(self, array, indexes):
+        self.type = INDEX_NODE
+        self.array = array
+        self.indexes = indexes
+
+    def eval(self, environment):
+        array = eval(self.array, environment)
+        for index in eval(self.indexes, environment):
+            array = array[eval(index, environment)]
+        return assign_node(array)
+
+    def __repr__(self):
+        return (
+            "INDEX_NODE:" + self.array.__repr__() + "[" + self.indexes.__repr__() + "]"
+        )
+
+
 # =============== Atom Nodes ==============
 
 

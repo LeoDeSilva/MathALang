@@ -115,6 +115,10 @@ class Parser:
                 self.advance()
                 params = self.parse_parameters(RPAREN)
                 node = FunctionCallNode(identifier, [], params)
+            elif self.token.type == LSQUARE:
+                self.advance()
+                index = self.parse_parameters(RSQUARE)
+                return IndexNode(VarAccessNode(identifier), index)
             else:
                 self.retreat()
                 node = VarAccessNode(identifier)
@@ -158,6 +162,13 @@ class Parser:
             self.advance()
             nodes = self.parse_parameters(RSQUARE)
             node = ArrayNode(nodes)
+            self.advance()
+            if self.token.type == LSQUARE:
+                self.advance()
+                index = self.parse_parameters(RSQUARE)
+                return IndexNode(node, index)
+            else:
+                self.retreat()
 
         self.advance()
         return node
