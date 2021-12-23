@@ -24,7 +24,7 @@ def interpret_line(line, environment, display):
 
 
 def read_file(filename):
-    environment = Environment({"prediction": True})
+    environment = Environment({"prediction": False})
     with open(filename, "r") as f:
         interpret_line(f.read().replace("\n", ""), environment, False)
 
@@ -36,7 +36,7 @@ def start_repl():
             line = input(">>")
 
         except KeyboardInterrupt:
-            print("Keyboard Interrupt")
+            print("\nKeyboard Interrupt")
             break
 
         if line in ("quit", "break", "exit"):

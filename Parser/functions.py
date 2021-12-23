@@ -29,10 +29,8 @@ def handle_input(node, environment):
 
 
 def handle_int_input(node, environment):
-    return nodes.IntNode(
-        nodes.format_result(
-            float(input(params_to_string(node.parameters, environment)))
-        )
+    return nodes.assign_node(
+        float(input(params_to_string(node.parameters, environment)))
     )
 
 
@@ -41,9 +39,9 @@ def handle_random(node, environment):
         if len(node.configurations) >= 1:
             n = nodes.eval(node.configurations[0], environment)
             return nodes.ArrayNode(
-                [nodes.IntNode(nodes.format_result(random.random())) for _ in range(n)]
+                [nodes.assign_node(random.random()) for _ in range(n)]
             )
-        return nodes.IntNode(nodes.format_result(random.random()))
+        return nodes.assign_node(random.random())
 
     if len(node.parameters) > 1:
         min_value = nodes.eval(node.parameters[0], environment)
@@ -84,16 +82,14 @@ def handle_sqrt(node, environment):
     root = 2
     if len(node.configurations) > 0:
         root = nodes.eval(node.configurations[0], environment)
-    return nodes.IntNode(
-        nodes.format_result(nodes.eval(node.parameters[0], environment) ** (1 / root))
-    )
+    return nodes.assign_node(nodes.eval(node.parameters[0], environment) ** (1 / root))
 
 
 def handle_sum(node, environment):
     array = nodes.ArrayNode(
         nodes.eval(flatten_list(node.parameters, environment), environment)
     )
-    return nodes.IntNode(nodes.format_result(sum(nodes.eval(array, environment))))
+    return nodes.IntNode(sum(nodes.eval(array, environment)))
 
 
 def handle_frac(node, environment):
@@ -101,7 +97,7 @@ def handle_frac(node, environment):
         return nodes.ErrorNode("FRAC takes at least 2 parameters")
 
     op_node = nodes.BinOpNode(node.parameters[0], "DIV", node.parameters[1])
-    return nodes.IntNode(nodes.eval(op_node, environment))
+    return nodes.assign_node(nodes.eval(op_node, environment))
 
 
 def handle_quadratic(node, environment):
@@ -113,12 +109,8 @@ def handle_quadratic(node, environment):
     b = nodes.eval(node.parameters[1], environment)
     c = nodes.eval(node.parameters[2], environment)
 
-    positive = nodes.IntNode(
-        nodes.format_result(-b + math.sqrt(b ** 2 - (4 * a * c))) / (2 * a)
-    )
-    negative = nodes.IntNode(
-        nodes.format_result(-b - math.sqrt(b ** 2 - (4 * a * c))) / (2 * a)
-    )
+    positive = nodes.assign_node((-b + math.sqrt(b ** 2 - (4 * a * c))) / (2 * a))
+    negative = nodes.assign_node((-b - math.sqrt(b ** 2 - (4 * a * c))) / (2 * a))
 
     if calculation.lower() in ("positive", "add", "+"):
         return positive
@@ -144,9 +136,10 @@ def handle_percentage(node, environment):
 def handle_average(node, environment):
     if len(node.parameters) < 1:
         return nodes.ErrorNode("AVERAGE takes at least 1 parameter")
-    
+
     params = flatten_list(node.parameters, environment)
-    return nodes.assign_node(sum(params)/len(params))
+    return nodes.assign_node(sum(params) / len(params))
+
 
 # =============== Quality Of Life ==============
 

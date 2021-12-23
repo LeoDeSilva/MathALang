@@ -68,6 +68,11 @@ keywords = {
     "define": DEFINE,
     "per": DIV,
     "for": DIV,
+    "add": ADD,
+    "and": ADD,
+    "by": MUL,
+    "times": MUL,
+    "take": SUB,
 }
 
 

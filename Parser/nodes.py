@@ -64,17 +64,17 @@ class BinOpNode:
             return right
         try:
             if self.op == ADD:
-                return IntNode(format_result(left + right))
+                return assign_node(left + right)
             elif self.op == SUB:
-                return IntNode(format_result(left - right))
+                return assign_node(left - right)
             elif self.op == DIV:
-                return IntNode(format_result(left / right))
+                return assign_node(left / right)
             elif self.op == MUL:
-                return IntNode(format_result(left * right))
+                return assign_node(left * right)
             elif self.op == MOD:
-                return IntNode(format_result(left % right))
+                return assign_node(left % right)
             elif self.op == POW:
-                return IntNode(format_result(left ** right))
+                return assign_node(left ** right)
 
             elif self.op == EE:
                 return IntNode(1 if left == right else 0)
@@ -151,7 +151,7 @@ class VarAccessNode:
         }
 
         for identifier in list(environment.variables):
-            certainty = SequenceMatcher(None, self.identifier, identifier).ratio()
+            certainty = similarity(self.identifier, identifier)
 
             if certainty > predicted_identifier["certainty"]:
                 predicted_identifier = {
@@ -240,8 +240,8 @@ class FunctionCallNode:
             "quad": handle_quadratic,
             "percentage": handle_percentage,
             "perc": handle_percentage,
-            "average":handle_average,
-            "avg":handle_average,
+            "average": handle_average,
+            "avg": handle_average,
         }
 
     def __repr__(self):
@@ -294,3 +294,17 @@ def format_result(result):
     else:
         # Possibly give option for d.p
         return round(result, 3)
+
+
+def similarity(a, b):
+    sequenceMatcherCertainty = SequenceMatcher(None, a, b).ratio()
+
+    i = 0
+    while i < len(a) and i < len(b):
+        if a[i] != b[i]:
+            break
+        i += 1
+
+    consecutiveCertainty = i / len(a)
+
+    return (consecutiveCertainty * 0.4) + (sequenceMatcherCertainty * 0.6)
