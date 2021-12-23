@@ -1,8 +1,15 @@
-from os import environ
+from os import replace
 import random
 import math
+from numpy import integer
+from numpy.core.fromnumeric import var
+import periodictable
+from sympy import sympify, solve, Symbol, Integer
 from Lexer.tokens import *
-import Parser.nodes as nodes
+import Evaluator.nodes as nodes
+
+elements = periodictable.core.default_table()
+periodictable.core.define_elements(elements, globals())
 
 
 # =============== Miscellaneous ==============
@@ -75,6 +82,20 @@ def handle_join(node, environment):
     )
 
 
+def handle_index(node, environment):
+    index = 0
+    if len(node.parameters) < 1:
+        return nodes.ErrorNode("INDEX takes at least 1 parameter")
+
+    if len(node.parameters) > 1:
+        index = nodes.eval(node.parameters[1], environment)
+
+    if len(node.configurations) > 0:
+        index = nodes.eval(node.configurations[0], environment)
+
+    return nodes.eval(node.parameters[0], environment)[index]
+
+
 # =============== Math ==============
 
 
@@ -141,6 +162,73 @@ def handle_average(node, environment):
     return nodes.assign_node(sum(params) / len(params))
 
 
+def handle_solve(node, environment):
+    if len(node.parameters) < 1:
+        return nodes.ErrorNode("AVERAGE takes at least 1 parameter")
+
+    eq = params_to_string(node.parameters, environment)
+    sympy_eq = sympify("Eq(" + eq.replace("=", ",").replace("^", "**") + ")")
+
+    if len(node.configurations) > 0:
+        solved = [
+            solve(
+                sympy_eq,
+                Symbol(params_to_string(node.configurations, environment)),
+                list=True,
+            )
+        ]
+
+    else:
+        solved = [solve(sympy_eq, sym, list=True) for sym in sympy_eq.free_symbols]
+
+    solutions = []
+    for i, variable in enumerate(solved):
+        solutions.append([])
+        for solution in variable:
+            if isinstance(solution, list):
+                for sol in solution:
+                    try:
+                        solutions[i].append(
+                            nodes.assign_node(
+                                eval(str(sol).replace("sqrt", "math.sqrt"))
+                            )
+                        )
+                    except:
+                        solutions[i].append(
+                            nodes.assign_node(str(sol).replace("sqrt", "math.sqrt"))
+                        )
+
+            else:
+                try:
+                    solutions[i].append(
+                        nodes.assign_node(
+                            eval(str(solution).replace("sqrt", "math.sqrt"))
+                        )
+                    )
+                except:
+                    solutions[i].append(
+                        nodes.assign_node(str(solution).replace("sqrt", "math.sqrt"))
+                    )
+
+    if len(solutions) == 1:
+        solutions = solutions[0]
+    if len(solutions) == 1:
+        solutions = solutions[0]
+
+    return nodes.assign_node(solutions)
+
+
+# =============== Chemistry ==============
+
+
+def handle_mass(node, environment):
+    if len(node.parameters) < 1:
+        return nodes.ErrorNode("MASS takes at least 1 parameter")
+
+    element = globals()[params_to_string(node.parameters, environment)]
+    return nodes.assign_node(element.mass)
+
+
 # =============== Quality Of Life ==============
 
 
@@ -163,3 +251,31 @@ def flatten_list(array, environment):
 
     else:
         return flatten_list(nodes.eval(array, environment), environment)
+
+
+# =============== Function Dictionary ===============
+
+functions = {
+    "print": handle_print,
+    "input": handle_input,
+    "intInput": handle_int_input,
+    "intput": handle_int_input,
+    "random": handle_random,
+    "join": handle_join,
+    "frac": handle_frac,
+    "sqrt": handle_sqrt,
+    "root": handle_sqrt,
+    "sum": handle_sum,
+    "len": handle_len,
+    "str": handle_str,
+    "int": handle_int,
+    "quadratic": handle_quadratic,
+    "quad": handle_quadratic,
+    "percentage": handle_percentage,
+    "perc": handle_percentage,
+    "average": handle_average,
+    "avg": handle_average,
+    "mass": handle_mass,
+    "solve": handle_solve,
+    "index": handle_index,
+}

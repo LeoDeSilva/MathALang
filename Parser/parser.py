@@ -1,6 +1,6 @@
 import time
 from Lexer.tokens import *
-from Parser.nodes import *
+from Evaluator.nodes import *
 
 
 class Parser:
@@ -109,7 +109,15 @@ class Parser:
             node = StringNode(self.token.literal)
 
         elif self.token.type == IDENTIFIER:
-            node = VarAccessNode(self.token.literal)
+            identifier = self.token.literal
+            self.advance()
+            if self.token.type == LPAREN:
+                self.advance()
+                params = self.parse_parameters(RPAREN)
+                node = FunctionCallNode(identifier, [], params)
+            else:
+                self.retreat()
+                node = VarAccessNode(identifier)
 
         elif self.token.type == LPAREN:
             self.advance()

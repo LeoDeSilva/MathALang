@@ -1,6 +1,6 @@
 from os import environ
 from Lexer.tokens import *
-from Parser.functions import *
+from Evaluator.functions import *
 from difflib import SequenceMatcher
 
 # =============== Generic Nodes ================
@@ -221,28 +221,7 @@ class FunctionCallNode:
         self.configurations = configurations
         self.parameters = parameters
         self.type = FUNCTION_CALL_NODE
-
-        self.functions = {
-            "print": handle_print,
-            "input": handle_input,
-            "intInput": handle_int_input,
-            "intput": handle_int_input,
-            "random": handle_random,
-            "join": handle_join,
-            "frac": handle_frac,
-            "sqrt": handle_sqrt,
-            "root": handle_sqrt,
-            "sum": handle_sum,
-            "len": handle_len,
-            "str": handle_str,
-            "int": handle_int,
-            "quadratic": handle_quadratic,
-            "quad": handle_quadratic,
-            "percentage": handle_percentage,
-            "perc": handle_percentage,
-            "average": handle_average,
-            "avg": handle_average,
-        }
+        self.functions = functions
 
     def __repr__(self):
         return (
@@ -282,7 +261,9 @@ def assign_node(node):
     elif isinstance(node, str):
         return StringNode(node)
     elif isinstance(node, list):
-        return ArrayNode(node)
+        return ArrayNode([assign_node(e) for e in node])
+    else:
+        return node
 
 
 def format_result(result):
