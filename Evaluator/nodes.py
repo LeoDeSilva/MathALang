@@ -1,4 +1,7 @@
 from os import environ
+from numpy import array
+
+from numpy.lib.arraysetops import isin
 from Lexer.tokens import *
 from Evaluator.functions import *
 from difflib import SequenceMatcher
@@ -34,9 +37,36 @@ class VarAssignNode:
         self.type = VAR_ASSIGN_NODE
 
     def eval(self, environment):
-        result = eval(self.expression, environment)
-        environment.variables[self.identifier] = result
-        # return result
+        if isinstance(self.identifier, str):
+            result = eval(self.expression, environment)
+            environment.variables[self.identifier] = result
+        elif isinstance(self.identifier, IndexNode):
+            if isinstance(self.identifier.array, VarAccessNode):
+                identifier = self.identifier.array.predict_identifier(environment)
+                # environment.variables[identifier] = eval(self.identifier, environment)
+                indexes = eval(self.identifier.indexes, environment)
+                replaced = self.replace_element(
+                    array=eval(self.identifier.array, environment),
+                    index=0,
+                    indexes=[0] + [eval(i, environment) for i in indexes],
+                    value=assign_node(eval(self.expression, environment)),
+                )
+
+                environment.variables[identifier] = assign_node(replaced)
+
+    def replace_element(self, array, index, indexes, value):
+        if len(indexes) == 1 and index == indexes[0]:
+            return value
+        elif index == indexes[0]:
+            if isinstance(array, list):
+                return [
+                    self.replace_element(element, i, indexes[1:], value)
+                    for i, element in enumerate(array)
+                ]
+            else:
+                return self.replace_element(array, 0, indexes[1:], value)
+        else:
+            return array
 
     def __repr__(self):
         return (
@@ -156,13 +186,7 @@ class VarAccessNode:
         self.type = VAR_ACCESS_NODE
         self.identifier = identifier
 
-    def eval(self, environment):
-        if (
-            self.identifier in environment.variables
-            or environment.options["prediction"] != True
-        ):
-            return environment.variables[self.identifier]
-
+    def predict_identifier(self, environment):
         predicted_identifier = {
             "identifier": list(environment.variables)[0],
             "certainty": 0,
@@ -176,8 +200,16 @@ class VarAccessNode:
                     "identifier": identifier,
                     "certainty": certainty,
                 }
+        return predicted_identifier["identifier"]
 
-        return environment.variables[predicted_identifier["identifier"]]
+    def eval(self, environment):
+        if (
+            self.identifier in environment.variables
+            or environment.options["prediction"] != True
+        ):
+            return environment.variables[self.identifier]
+
+        return environment.variables[self.predict_identifier(environment)]
 
     def __repr__(self):
         return "VAR_ACCESS:" + self.identifier

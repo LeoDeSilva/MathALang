@@ -59,17 +59,21 @@ class Parser:
 
     def parse_comparison(self):
         left_node = self.parse_arith()
-        if self.token.type not in (SEMICOLON, EOF) and self.token.type in (
-            EE,
-            NE,
-            GT,
-            GTE,
-            LT,
-            LTE,
-        ):
-            op = self.token.type
-            self.advance()
-            return BinOpNode(left_node, op, self.parse_comparison())
+        if self.token.type not in (SEMICOLON, EOF):
+            if self.token.type in (
+                EE,
+                NE,
+                GT,
+                GTE,
+                LT,
+                LTE,
+            ):
+                op = self.token.type
+                self.advance()
+                return BinOpNode(left_node, op, self.parse_comparison())
+            elif self.token.type == EQ:
+                self.advance()
+                return VarAssignNode(left_node, self.parse_comparison())
         return left_node
 
     def parse_arith(self):
@@ -118,6 +122,7 @@ class Parser:
             elif self.token.type == LSQUARE:
                 self.advance()
                 index = self.parse_parameters(RSQUARE)
+                self.advance()
                 return IndexNode(VarAccessNode(identifier), index)
             else:
                 self.retreat()
@@ -157,6 +162,14 @@ class Parser:
                 self.retreat()
 
             node = FunctionCallNode(identifier, configs, params)
+            self.advance()
+            if self.token.type == LSQUARE:
+                self.advance()
+                index = self.parse_parameters(RSQUARE)
+                self.advance()
+                return IndexNode(node, index)
+            else:
+                self.retreat()
 
         elif self.token.type == LSQUARE:
             self.advance()
@@ -166,6 +179,7 @@ class Parser:
             if self.token.type == LSQUARE:
                 self.advance()
                 index = self.parse_parameters(RSQUARE)
+                self.advance()
                 return IndexNode(node, index)
             else:
                 self.retreat()
